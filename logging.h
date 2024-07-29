@@ -5,6 +5,12 @@
 #ifndef LOGGING_H
 #define LOGGING_H
 #include <iostream>
+#include <filesystem>
+#include <string>
+
+#ifndef  __FILE_NAME__
+#define __FILE_NAME__ std::filesystem::path(__FILE__).filename().string()
+#endif
 
 inline int LOG_LEVEL = 3;
 #define TRACE   if (LOG_LEVEL > 5) { std::cerr << "TRACE: "
