@@ -6,7 +6,7 @@
 #define RFT_NETWORKLAYER_H
 
 #include <netinet/in.h>
-#include <string.h>
+#include <cstring>
 #include "datagram.h"
 
 class networkLayerC {
