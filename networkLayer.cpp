@@ -77,12 +77,12 @@ void networkLayerC::udt_send(datagramS *data)  {
     DEBUG << "Sending datagram to " << inet_ntoa(destinationAddr.sin_addr) << ":" << ntohs(destinationAddr.sin_port) << ENDL;
     TRACE << "Sending: " << toString(data) << ENDL;
 
-    if (corruption(gen)) {
+    if (!corruption(gen)) {
         WARNING << "Corrupting the datagram." << ENDL;
         data->data[0] = 'X';
     }
 
-    if (loss(gen)) {
+    if (!loss(gen)) {
         WARNING << "Losing the datagram." << ENDL;
         return;
     }
@@ -120,7 +120,7 @@ void networkLayerC::udt_receive(datagramS *data)   {
         }
     }
 
-    if (corruption(gen)) {
+    if (!corruption(gen)) {
         WARNING << "Corrupting the incoming datagram." << ENDL;
         data->data[0] = 'X';
     }
