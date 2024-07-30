@@ -115,8 +115,9 @@ void networkLayerC::udt_receive(datagramS *data)   {
         }
 
         if (!loss(gen)) {
-            WARNING << "Losing the incoming datagram." << ENDL;
             notReceived = false;
+        } else {
+            WARNING << "Losing the incoming datagram." << ENDL;
         }
     }
 
