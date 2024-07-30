@@ -74,18 +74,18 @@ void networkLayerC::udt_send(datagramS *data)  {
         destinationAddr = serverAddr;
     }
 
-    DEBUG << "Sending datagram to " << inet_ntoa(destinationAddr.sin_addr) << ":" << ntohs(destinationAddr.sin_port) << ENDL;
-    TRACE << "Sending: " << toString(data) << ENDL;
+    if (loss(gen)) {
+        WARNING << "Losing the datagram." << ENDL;
+        return;
+    }
 
-    if (!corruption(gen)) {
+    if (corruption(gen)) {
         WARNING << "Corrupting the datagram." << ENDL;
         data->data[0] = 'X';
     }
 
-    if (!loss(gen)) {
-        WARNING << "Losing the datagram." << ENDL;
-        return;
-    }
+    DEBUG << "Sending datagram to " << inet_ntoa(destinationAddr.sin_addr) << ":" << ntohs(destinationAddr.sin_port) << ENDL;
+    TRACE << "Sending: " << toString(data) << ENDL;
 
     ssize_t bytesSent = sendto(socketFd, data, sizeof(datagramS), 0,
                                  (struct sockaddr*)&destinationAddr, sizeof(destinationAddr));
@@ -114,14 +114,14 @@ void networkLayerC::udt_receive(datagramS *data)   {
             throw (std::system_error(std::make_error_code(static_cast<std::errc>(errno)), strerror(errno)));
         }
 
-        if (!loss(gen)) {
-            notReceived = false;
-        } else {
+        if (loss(gen)) {
             WARNING << "Losing the incoming datagram." << ENDL;
+        } else {
+            notReceived = false;
         }
     }
 
-    if (!corruption(gen)) {
+    if (corruption(gen)) {
         WARNING << "Corrupting the incoming datagram." << ENDL;
         data->data[0] = 'X';
     }
