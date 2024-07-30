@@ -40,11 +40,19 @@ int main(int argc, char* argv[]) {
     // Defaults
     uint16_t portNum = 12345;
     std::string outputFileName;
+    float lossRate = 0.0;
+    float corruptionRate = 0.0;
 
     int opt;
     try {
-        while ((opt = getopt(argc, argv, "f:p:d:")) != -1) {
+        while ((opt = getopt(argc, argv, "f:p:d:l:c:")) != -1) {
             switch (opt) {
+                case 'l':
+                    lossRate = std::stof(optarg);
+                    break;
+                case 'c':
+                    corruptionRate = std::stof(optarg);
+                    break;
                 case 'p':
                     portNum = std::stoi(optarg);
                     break;
@@ -56,7 +64,7 @@ int main(int argc, char* argv[]) {
                     break;
                 case '?':
                 default:
-                    std::cout << "Usage: " << argv[0] << " [-p port] [-d debug_level]" << std::endl;
+                    std::cout << "Usage: " << argv[0] << " -f filename [-p port] [-d debug_level] [-l lossRate] [-c corruptionRate] " << std::endl;
                     break;
             }
         }
@@ -65,6 +73,8 @@ int main(int argc, char* argv[]) {
         return(1);
     }
     TRACE << "Command line arguments parsed." << ENDL;
+    TRACE << "\tLoss Rate: " << lossRate << ENDL;
+    TRACE << "\tCorruption Rate: " << corruptionRate << ENDL;
     TRACE << "\tPort number: " << portNum << ENDL;
     TRACE << "\tDebug Level: " << LOG_LEVEL << ENDL;
     TRACE << "\tOutput file name: " << outputFileName << ENDL;
@@ -95,7 +105,7 @@ int main(int argc, char* argv[]) {
 
 
     try {
-        auto *network = new networkLayerC(portNum);
+        auto *network = new networkLayerC(portNum, lossRate, corruptionRate);
         auto *datagram = new datagramS;
         bool notFinished = true;
 
@@ -116,7 +126,7 @@ int main(int argc, char* argv[]) {
                     DEBUG << "SeqNum matches expectedSeqNum (both are " << expectedSeqNum << ")" << ENDL;
 
                     if (datagram->payloadLength == 0) {
-                        INFO << "Payload length is zero, indicating we hare received all the data packet." << ENDL;
+                        INFO << "Payload length is zero, indicating we have received all the data packet." << ENDL;
                         TRACE << "Closing output file. We will send one ACK but if it gets lost client will get stuck." << ENDL;
                         outputFile.close();
                         notFinished = false;
