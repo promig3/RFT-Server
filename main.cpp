@@ -1,8 +1,6 @@
 //
 // Created by Phillip Romig on 7/15/24.
 //
-
-
 #include <iostream>
 #include <fstream>
 #include <sys/socket.h>
@@ -72,12 +70,12 @@ int main(int argc, char* argv[]) {
         FATAL << "Invalid command line arguments: " << e.what() << ENDL;
         return(1);
     }
-    TRACE << "Command line arguments parsed." << ENDL;
-    TRACE << "\tLoss Rate: " << lossRate << ENDL;
-    TRACE << "\tCorruption Rate: " << corruptionRate << ENDL;
-    TRACE << "\tPort number: " << portNum << ENDL;
-    TRACE << "\tDebug Level: " << LOG_LEVEL << ENDL;
-    TRACE << "\tOutput file name: " << outputFileName << ENDL;
+    INFO << "Command line arguments parsed." << ENDL;
+    INFO << "\tLoss Rate: " << lossRate << ENDL;
+    INFO << "\tCorruption Rate: " << corruptionRate << ENDL;
+    INFO << "\tPort number: " << portNum << ENDL;
+    INFO << "\tDebug Level: " << LOG_LEVEL << ENDL;
+    INFO << "\tOutput file name: " << outputFileName << ENDL;
 
 
     //

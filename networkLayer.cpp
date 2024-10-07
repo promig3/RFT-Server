@@ -15,7 +15,9 @@
 // Constructor for the server
 // hostname: the name of the server
 // portNum: the port number to connect to
-networkLayerC::networkLayerC(uint16_t portNum, float lossRate, float corruptionRate)  {
+networkLayerC::networkLayerC(uint16_t portNum, float lossRate, float corruptionRate) : 
+    inboundLossCount_v(0), inboundCorruptionCount_v(0), outboundLossCount_v(0),
+    outboundCorruptionCount_v(0), datagramsSent_v(0), datagramsRecieved_v(0) {
     TRACE << "Creating a networkLayerC object with flavor server." << ENDL;
     // Create a UDP socketFd
     socketFd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -75,12 +77,14 @@ void networkLayerC::udt_send(datagramS *data)  {
     }
 
     if (loss(gen)) {
+	outboundLossCount_v++;
         WARNING << "Losing the datagram." << ENDL;
         return;
     }
 
     if (corruption(gen)) {
         WARNING << "Corrupting the datagram." << ENDL;
+	outboundCorruptionCount_v++;
         data->data[0] = 'X';
     }
 
@@ -94,6 +98,7 @@ void networkLayerC::udt_send(datagramS *data)  {
         close(socketFd);
         throw(std::runtime_error("sendto() failed. Error #" + std::to_string(errno) + ": " + strerror(errno)));
     }
+    datagramsSent_v++;
     DEBUG << "Successfully sent " << bytesSent << " bytes." << ENDL;
 }
 
@@ -113,15 +118,18 @@ void networkLayerC::udt_receive(datagramS *data)   {
             close(socketFd);
             throw (std::system_error(std::make_error_code(static_cast<std::errc>(errno)), strerror(errno)));
         }
+	datagramsRecieved_v++;
 
         if (loss(gen)) {
             WARNING << "Losing the incoming datagram." << ENDL;
+	    inboundLossCount_v++;
         } else {
             notReceived = false;
         }
     }
 
     if (corruption(gen)) {
+	inboundLossCount_v++;
         WARNING << "Corrupting the incoming datagram." << ENDL;
         data->data[0] = 'X';
     }
@@ -134,6 +142,12 @@ networkLayerC::~networkLayerC() {
     if (socketFd != 0) {
         close(socketFd);
     }
+    DEBUG << "Input loss count " << inboundLossCount_v << ENDL;
+    DEBUG << "Input corruption count " << inboundCorruptionCount_v << ENDL;
+    DEBUG << "Output loss count " << outboundCorruptionCount_v << ENDL;
+    DEBUG << "Output corruption count " << outboundCorruptionCount_v << ENDL;
+    DEBUG << "Datagrams recieved " << datagramsRecieved_v << ENDL;
+    DEBUG << "Datagrams sendt " << datagramsRecieved_v << ENDL;
 
 }
 

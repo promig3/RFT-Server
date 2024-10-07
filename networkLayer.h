@@ -14,6 +14,12 @@ class networkLayerC {
 private:
     bool server;
     int socketFd;
+    int inboundLossCount_v;
+    int inboundCorruptionCount_v;
+    int outboundLossCount_v;
+    int outboundCorruptionCount_v;
+    int datagramsSent_v;
+    int datagramsRecieved_v;
     std::mt19937 gen;
     std::bernoulli_distribution corruption;
     std::bernoulli_distribution loss;
