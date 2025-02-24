@@ -36,10 +36,11 @@ void deliver_data(std::ofstream &outputFile, char *data, int length) {
 int main(int argc, char* argv[]) {
 
     // Defaults
-    uint16_t portNum = 12345;
-    std::string outputFileName;
-    float lossRate = 0.0;
-    float corruptionRate = 0.0;
+    uint16_t portNum(12345);
+    std::string outputFileName("");
+    float lossRate(0.0);
+    float corruptionRate(0.0);
+    bool outputFileNameIsPresent(false);
 
     int opt;
     try {
@@ -68,8 +69,16 @@ int main(int argc, char* argv[]) {
         }
     } catch (std::exception &e) {
         FATAL << "Invalid command line arguments: " << e.what() << ENDL;
+        std::cout << "Usage: " << argv[0] << " -f filename [-p port] [-d debug_level] [-l lossRate] [-c corruptionRate] " << std::endl;
         return(1);
     }
+
+    if (!outputFileNameIsPresent) {
+        FATAL << "Output filename is requried" << ENDL;
+        std::cout << "Usage: " << argv[0] << " -f filename [-p port] [-d debug_level] [-l lossRate] [-c corruptionRate] " << std::endl;
+        return(1);
+    }
+    
     INFO << "Command line arguments parsed." << ENDL;
     INFO << "\tLoss Rate: " << lossRate << ENDL;
     INFO << "\tCorruption Rate: " << corruptionRate << ENDL;
