@@ -29,7 +29,7 @@ public:
    // networkLayerC() : server(false), socketFd(0), lossRate_v(0.0), corruptionRate_v(0.0), gen(), corruption(), loss()  {};
    explicit networkLayerC(uint16_t portNum, float lossRate, float corruptionRate);
    ~networkLayerC();
-   void udt_send( datagramS *data);
+   void udt_send( datagramS *data, bool lastPacket);
    void udt_receive(datagramS *data) ;
 
 };

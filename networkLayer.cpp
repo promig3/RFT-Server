@@ -63,7 +63,7 @@ networkLayerC::networkLayerC(uint16_t portNum, float lossRate, float corruptionR
 
 
 
-void networkLayerC::udt_send(datagramS *data)  {
+void networkLayerC::udt_send(datagramS *data, bool lastPacket)  {
 
     struct sockaddr_in destinationAddr{};
     if (server) {
@@ -76,16 +76,19 @@ void networkLayerC::udt_send(datagramS *data)  {
         destinationAddr = serverAddr;
     }
 
-    if (loss(gen)) {
-	outboundLossCount_v++;
-        WARNING << "Losing the datagram." << ENDL;
-        return;
-    }
+    if (!lastPacket) {
 
-    if (corruption(gen)) {
-        WARNING << "Corrupting the datagram." << ENDL;
-	outboundCorruptionCount_v++;
-        data->data[0] = 'X';
+        if (loss(gen)) {
+	        outboundLossCount_v++;
+            WARNING << "Losing the outgoing datagram." << ENDL;
+            return;
+        }
+
+        if (corruption(gen)) {
+            WARNING << "Corrupting the outgoing datagram." << ENDL;
+	        outboundCorruptionCount_v++;
+            data->data[0] = 'X';
+        }
     }
 
     DEBUG << "Sending datagram to " << inet_ntoa(destinationAddr.sin_addr) << ":" << ntohs(destinationAddr.sin_port) << ENDL;
@@ -118,18 +121,18 @@ void networkLayerC::udt_receive(datagramS *data)   {
             close(socketFd);
             throw (std::system_error(std::make_error_code(static_cast<std::errc>(errno)), strerror(errno)));
         }
-	datagramsRecieved_v++;
+	    datagramsRecieved_v++;
 
         if (loss(gen)) {
             WARNING << "Losing the incoming datagram." << ENDL;
-	    inboundLossCount_v++;
+	        inboundLossCount_v++;
         } else {
             notReceived = false;
         }
     }
 
     if (corruption(gen)) {
-	inboundLossCount_v++;
+	    inboundLossCount_v++;
         WARNING << "Corrupting the incoming datagram." << ENDL;
         data->data[0] = 'X';
     }

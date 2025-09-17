@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
         bool notFinished = true;
 
         while (notFinished) {
-            DEBUG << "Main is calling udt_receive()" << ENDL;
+            TRACE << "Main is calling udt_receive()" << ENDL;
             network->udt_receive(datagram);
             DEBUG << "Received: " << toString(datagram) << ENDL;
 
@@ -134,28 +134,24 @@ int main(int argc, char* argv[]) {
 
                     if (datagram->payloadLength == 0) {
                         INFO << "Payload length is zero, indicating we have received all the data packet." << ENDL;
-                        TRACE << "Closing output file. We will send one ACK but if it gets lost client will get stuck." << ENDL;
                         outputFile.close();
                         notFinished = false;
                     } else {
+                        DEBUG << "Main is calling deliver_data(rcvpkt->data)" << ENDL;
                         deliver_data(outputFile, datagram->data, datagram->payloadLength);
                     }
 
                     sndpkt->ackNum = expectedSeqNum++;
                     sndpkt->checksum = computeChecksum(sndpkt);
-                    DEBUG << "Main is calling deliver_data(rcvpkt->data)" << ENDL;
-                    if (datagram->payloadLength == 0) {
-                        notFinished = false;
-                    }
                 } else {
                     WARNING << "SeqNum does not match expectedSeqNum (expected " << expectedSeqNum << ", got " << datagram->seqNum << ")" << ENDL;
                 }
             }
 
 
-            DEBUG << "Main is calling udt_send(sndpkt)" << ENDL;
-            network->udt_send(sndpkt);
-            DEBUG << "Sent: " << toString(sndpkt) << ENDL;
+            TRACE << "Main is calling udt_send(sndpkt)" << ENDL;
+            network->udt_send(sndpkt,!notFinished);
+            TRACE << "Sent ACK back: " << toString(sndpkt) << ENDL;
         }
 
         delete datagram;
