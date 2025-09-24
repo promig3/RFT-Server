@@ -40,7 +40,6 @@ int main(int argc, char* argv[]) {
     std::string outputFileName("");
     float lossRate(0.0);
     float corruptionRate(0.0);
-    bool outputFileNameIsPresent(false);
 
     int opt;
     try {
@@ -72,20 +71,14 @@ int main(int argc, char* argv[]) {
         std::cout << "Usage: " << argv[0] << " -f filename [-p port] [-d debug_level] [-l lossRate] [-c corruptionRate] " << std::endl;
         return(1);
     }
-
-    if (!outputFileNameIsPresent) {
-        FATAL << "Output filename is requried" << ENDL;
-        std::cout << "Usage: " << argv[0] << " -f filename [-p port] [-d debug_level] [-l lossRate] [-c corruptionRate] " << std::endl;
-        return(1);
-    }
-    
+   
     INFO << "Command line arguments parsed." << ENDL;
-    INFO << "\tLoss Rate: " << lossRate << ENDL;
-    INFO << "\tCorruption Rate: " << corruptionRate << ENDL;
+    INFO << "\tOutput file name: " << outputFileName << ENDL;
     INFO << "\tPort number: " << portNum << ENDL;
     INFO << "\tDebug Level: " << LOG_LEVEL << ENDL;
-    INFO << "\tOutput file name: " << outputFileName << ENDL;
-
+    INFO << "\tLoss Rate: " << lossRate << ENDL;
+    INFO << "\tCorruption Rate: " << corruptionRate << ENDL;
+  
 
     //
     // Open the output file
