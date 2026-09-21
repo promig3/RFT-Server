@@ -8,6 +8,8 @@
 #include <netinet/in.h>
 #include <cstring>
 #include <random>
+#include <chrono>
+#include <thread>
 #include "datagram.h"
 
 class networkLayerC {
@@ -23,6 +25,7 @@ private:
     std::mt19937 gen;
     std::bernoulli_distribution corruption;
     std::bernoulli_distribution loss;
+    std::uniform_real_distribution<double> delay;
     struct sockaddr_in serverAddr{};
     struct sockaddr_in clientAddr{};
 public:

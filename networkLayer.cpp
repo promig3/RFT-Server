@@ -56,6 +56,7 @@ networkLayerC::networkLayerC(uint16_t portNum, float lossRate, float corruptionR
 
     loss.param(std::bernoulli_distribution::param_type(lossRate));
     corruption.param(std::bernoulli_distribution::param_type(corruptionRate));
+    delay.param(std::uniform_real_distribution<double>::param_type(0.0,0.25));
 
     server = true;
 }
@@ -93,6 +94,10 @@ void networkLayerC::udt_send(datagramS *data, bool lastPacket)  {
 
     DEBUG << "Sending datagram to " << inet_ntoa(destinationAddr.sin_addr) << ":" << ntohs(destinationAddr.sin_port) << ENDL;
     TRACE << "Sending: " << toString(data) << ENDL;
+
+    // Simulate some delay in the network.   Code written with the help of claude.
+    double d = delay(gen);
+    std::this_thread::sleep_for(std::chrono::duration<double>(d));
 
     ssize_t bytesSent = sendto(socketFd, data, sizeof(datagramS), 0,
                                  (struct sockaddr*)&destinationAddr, sizeof(destinationAddr));
@@ -132,7 +137,7 @@ void networkLayerC::udt_receive(datagramS *data)   {
     }
 
     if (corruption(gen)) {
-	    inboundLossCount_v++;
+	    inboundCorruptionCount_v++;
         WARNING << "Corrupting the incoming datagram." << ENDL;
         data->data[0] = 'X';
     }
