@@ -38,7 +38,7 @@ void deliver_data(std::ofstream &outputFile, char *data, int length) {
 int main(int argc, char* argv[]) {
 
     // Defaults
-    uint16_t portNum(12345);
+    uint16_t portNum(12345);  // On Isengard only ports 12,000 - 13,000 are open.
     std::string outputFileName("");
     float lossRate(0.0);
     float corruptionRate(0.0);
@@ -70,6 +70,12 @@ int main(int argc, char* argv[]) {
         }
     } catch (std::exception &e) {
         FATAL << "Invalid command line arguments: " << e.what() << ENDL;
+        std::cout << "Usage: " << argv[0] << " -f filename [-p port] [-d debug_level] [-l lossRate] [-c corruptionRate] " << std::endl;
+        return(1);
+    }
+
+    if (outputFileName == "") {
+       FATAL << "Invalid command line arguments: output filename is required."  << ENDL;
         std::cout << "Usage: " << argv[0] << " -f filename [-p port] [-d debug_level] [-l lossRate] [-c corruptionRate] " << std::endl;
         return(1);
     }
