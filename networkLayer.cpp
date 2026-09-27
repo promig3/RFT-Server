@@ -91,6 +91,7 @@ void networkLayerC::udt_send(datagramS *data, bool lastPacket)  {
         if (corruption(gen)) {
             WARNING << "Corrupting the outgoing datagram." << ENDL;
 	        outboundCorruptionCount_v++;
+            data->payloadLength = 1;
             data->data[0] = 'X';
         }
     }

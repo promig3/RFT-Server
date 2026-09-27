@@ -172,8 +172,8 @@ int main(int argc, char* argv[]) {
         }
 
         // Wait to see if we get a duplicate last datagram, which would indicate that the last
-        // ACK was lost by the network. The file is closed, so we send the data to the application, 
-        // rather we just kee sending the lask ACK until nothing is recieved for 1 second.
+        // ACK was lost by the network. The file is closed, so we don't send the data to the application, 
+        // rather we just keep sending the lask ACK until nothing is recieved for 1 second.
         // Code written with the help of Claude AI
         while (network->dataAvalable(1)) {
             network->udt_receive(datagram);
