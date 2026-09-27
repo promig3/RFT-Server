@@ -159,10 +159,10 @@ networkLayerC::~networkLayerC() {
     }
     DEBUG << "Input loss count " << inboundLossCount_v << ENDL;
     DEBUG << "Input corruption count " << inboundCorruptionCount_v << ENDL;
-    DEBUG << "Output loss count " << outboundCorruptionCount_v << ENDL;
+    DEBUG << "Output loss count " << outboundLossCount_v << ENDL;
     DEBUG << "Output corruption count " << outboundCorruptionCount_v << ENDL;
     DEBUG << "Datagrams recieved " << datagramsRecieved_v << ENDL;
-    DEBUG << "Datagrams sendt " << datagramsRecieved_v << ENDL;
+    DEBUG << "Datagrams sendt " << datagramsSent_v << ENDL;
 
 }
 

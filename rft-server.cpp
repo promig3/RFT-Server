@@ -56,10 +56,11 @@ int main(int argc, char* argv[]) {
 
     int opt;
     try {
-        while ((opt = getopt(argc, argv, "f:p:d:l:c:t")) != -1) {
+        while ((opt = getopt(argc, argv, "f:p:d:l:c:t:")) != -1) {
             switch (opt) {
                 case 't':
                     delay = std::stoi(optarg);
+                    break;
                 case 'l':
                     lossRate = std::stof(optarg);
                     break;
