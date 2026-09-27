@@ -179,7 +179,7 @@ bool networkLayerC::dataAvalable(unsigned int timeToSleep) {
     tv.tv_sec = timeToSleep;
     tv.tv_usec = 0;
 
-   retval = select(1, &rfds, NULL, NULL, &tv);
+   retval = select(socketFd+1, &rfds, NULL, NULL, &tv);
    if (retval == -1) {
         FATAL << "select failed, returning -1" << ENDL;
         throw (std::system_error(std::make_error_code(static_cast<std::errc>(errno)), strerror(errno)));

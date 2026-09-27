@@ -169,10 +169,16 @@ int main(int argc, char* argv[]) {
             network->udt_send(sndpkt,!notFinished);
             TRACE << "Sent ACK back: " << toString(sndpkt) << ENDL;
 
-            // Sleeps for 1 second, just in case the real network loses the last ack.
-            if (!notFinished) 
-                notFinished = network->dataAvalable(1);
-            
+        }
+
+        // Wait to see if we get a duplicate last datagram, which would indicate that the last
+        // ACK was lost by the network. The file is closed, so we send the data to the application, 
+        // rather we just kee sending the lask ACK until nothing is recieved for 1 second.
+        // Code written with the help of Claude AI
+        while (network->dataAvalable(1)) {
+            network->udt_receive(datagram);
+            if (validateChecksum(datagram) && (datagram->payloadLength == 0))
+                network->udt_send(sndpkt,true);
         }
 
 
