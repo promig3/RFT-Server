@@ -15,9 +15,11 @@
 // Constructor for the server
 // hostname: the name of the server
 // portNum: the port number to connect to
-networkLayerC::networkLayerC(uint16_t portNum, float lossRate, float corruptionRate) : 
+networkLayerC::networkLayerC(uint16_t portNum, float lossRate, float corruptionRate, unsigned int delay) : 
     inboundLossCount_v(0), inboundCorruptionCount_v(0), outboundLossCount_v(0),
-    outboundCorruptionCount_v(0), datagramsSent_v(0), datagramsRecieved_v(0) {
+    outboundCorruptionCount_v(0), datagramsSent_v(0), datagramsRecieved_v(0),
+    delay_v(delay)
+{
     TRACE << "Creating a networkLayerC object with flavor server." << ENDL;
     // Create a UDP socketFd
     socketFd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -56,7 +58,7 @@ networkLayerC::networkLayerC(uint16_t portNum, float lossRate, float corruptionR
 
     loss.param(std::bernoulli_distribution::param_type(lossRate));
     corruption.param(std::bernoulli_distribution::param_type(corruptionRate));
-    delay.param(std::uniform_real_distribution<double>::param_type(0.0,0.25));
+    //delay.param(std::uniform_real_distribution<double>::param_type(0.0,0.25));
 
     server = true;
 }
@@ -92,13 +94,18 @@ void networkLayerC::udt_send(datagramS *data, bool lastPacket)  {
         }
     }
 
-    DEBUG << "Sending datagram to " << inet_ntoa(destinationAddr.sin_addr) << ":" << ntohs(destinationAddr.sin_port) << ENDL;
+
+    // Slowing things down makes it eaiser to see what is happening and hence eaiser to debug.
+    // It also makes performance more predictable for setting window in the client.
+    if (delay_v>0) {
+        TRACE << "Sleeping for " << delay_v << "ms." << ENDL;
+        std::this_thread::sleep_for(std::chrono::milliseconds(delay_v));
+    }
+
+    DEBUG << "Sending datagram to " << inet_ntoa(destinationAddr.sin_addr)
+	      << ":" << ntohs(destinationAddr.sin_port) << ENDL;
     TRACE << "Sending: " << toString(data) << ENDL;
-
-    // Simulate some delay in the network.   Code written with the help of claude.
-    double d = delay(gen);
-    std::this_thread::sleep_for(std::chrono::duration<double>(d));
-
+    
     ssize_t bytesSent = sendto(socketFd, data, sizeof(datagramS), 0,
                                  (struct sockaddr*)&destinationAddr, sizeof(destinationAddr));
     if (bytesSent == -1) {

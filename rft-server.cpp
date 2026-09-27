@@ -12,6 +12,16 @@
 #include "networkLayer.h"
 #include "logging.h"
 
+void printInstructions() {
+  std::cout << "Avalable falgs:" << std::endl;
+  std::cout << "\t-f output-filename\t// Reqquired: Will be created or overwritten." << std::endl;
+  std::cout << "\t-p port-number\t// UDP port to use. On Isengard must be between 12,000 and 13,000. Defaults to 12345." << std::endl;
+  std::cout << "\t-l loss-rate\t// Probibility (0.0 - 1.0) a packet will be lost." << std::endl;
+  std::cout << "\t-c corruption-rate\t// Probibility(0.0 - 1.0) a packet will be corrupted." << std::endl;
+  std::cout << "\t-t delay\t// Delay between packets milliseconds. Can be used to slow down network to aid in debugging." << std::endl;
+  std::cout << "\t-d vebosity\t// How verbose (0-6) logging messages should be.\n" << std::endl;
+  return;
+}
 
 std::ofstream open_output_file(const std::string &filename) {
     //if (std::filesystem::exists(filename)) {
@@ -42,11 +52,14 @@ int main(int argc, char* argv[]) {
     std::string outputFileName("");
     float lossRate(0.0);
     float corruptionRate(0.0);
+    unsigned int delay(100);
 
     int opt;
     try {
-        while ((opt = getopt(argc, argv, "f:p:d:l:c:")) != -1) {
+        while ((opt = getopt(argc, argv, "f:p:d:l:c:t")) != -1) {
             switch (opt) {
+                case 't':
+                    delay = std::stoi(optarg);
                 case 'l':
                     lossRate = std::stof(optarg);
                     break;
@@ -64,19 +77,19 @@ int main(int argc, char* argv[]) {
                     break;
                 case '?':
                 default:
-                    std::cout << "Usage: " << argv[0] << " -f filename [-p port] [-d debug_level] [-l lossRate] [-c corruptionRate] " << std::endl;
+		  printInstructions();
                     break;
             }
         }
     } catch (std::exception &e) {
         FATAL << "Invalid command line arguments: " << e.what() << ENDL;
-        std::cout << "Usage: " << argv[0] << " -f filename [-p port] [-d debug_level] [-l lossRate] [-c corruptionRate] " << std::endl;
+	printInstructions();
         return(1);
     }
 
     if (outputFileName == "") {
        FATAL << "Invalid command line arguments: output filename is required."  << ENDL;
-        std::cout << "Usage: " << argv[0] << " -f filename [-p port] [-d debug_level] [-l lossRate] [-c corruptionRate] " << std::endl;
+       printInstructions();
         return(1);
     }
    
@@ -86,6 +99,7 @@ int main(int argc, char* argv[]) {
     INFO << "\tDebug Level: " << LOG_LEVEL << ENDL;
     INFO << "\tLoss Rate: " << lossRate << ENDL;
     INFO << "\tCorruption Rate: " << corruptionRate << ENDL;
+    INFO << "\tPacket delay (milliseconds)" << delay << ENDL;
   
 
     //
@@ -113,7 +127,7 @@ int main(int argc, char* argv[]) {
 
 
     try {
-        auto *network = new networkLayerC(portNum, lossRate, corruptionRate);
+      auto *network = new networkLayerC(portNum, lossRate, corruptionRate,delay);
         auto *datagram = new datagramS;
         bool notFinished = true;
 

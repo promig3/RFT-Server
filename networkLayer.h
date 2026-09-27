@@ -22,6 +22,7 @@ private:
     int outboundCorruptionCount_v;
     int datagramsSent_v;
     int datagramsRecieved_v;
+    unsigned int delay_v;
     std::mt19937 gen;
     std::bernoulli_distribution corruption;
     std::bernoulli_distribution loss;
@@ -29,8 +30,7 @@ private:
     struct sockaddr_in serverAddr{};
     struct sockaddr_in clientAddr{};
 public:
-   // networkLayerC() : server(false), socketFd(0), lossRate_v(0.0), corruptionRate_v(0.0), gen(), corruption(), loss()  {};
-   explicit networkLayerC(uint16_t portNum, float lossRate, float corruptionRate);
+   explicit networkLayerC(uint16_t portNum, float lossRate, float corruptionRate,unsigned int delay);
    ~networkLayerC();
    void udt_send( datagramS *data, bool lastPacket);
    void udt_receive(datagramS *data) ;

@@ -12,7 +12,7 @@
 #define __FILE_NAME__ std::filesystem::path(__FILE__).filename().string()
 #endif
 
-inline int LOG_LEVEL = 3;
+inline int LOG_LEVEL = 4;
 #define TRACE   if (LOG_LEVEL > 5) { std::cerr << "TRACE: "
 #define DEBUG   if (LOG_LEVEL > 4) { std::cerr << "DEBUG: "
 #define INFO    if (LOG_LEVEL > 3) { std::cerr << "INFO: "

@@ -40,7 +40,7 @@ clean:
 # This might work to create the submission tarball in the formal I asked for.
 #
 submit:
-	rm -f core project1 ${OBJ_FILES}
+	rm -f core rtf-server ${OBJ_FILES}
 	mkdir ${USERNAME} 
 	cp Makefile README.txt *.h *.cpp ${USERNAME} 
 	tar zcf ${USERNAME}.tgz ${USERNAME} 
