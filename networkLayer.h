@@ -34,6 +34,7 @@ public:
    ~networkLayerC();
    void udt_send( datagramS *data, bool lastPacket);
    void udt_receive(datagramS *data) ;
+   bool dataAvalable(unsigned int timeToSleep);
 
 };
 

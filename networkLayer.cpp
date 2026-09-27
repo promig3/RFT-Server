@@ -2,6 +2,7 @@
 // Created by Phillip Romig on 7/15/24.
 //
 
+#include <sys/time.h>
 #include <unistd.h>
 #include <netdb.h>
 #include <arpa/inet.h>
@@ -164,5 +165,26 @@ networkLayerC::~networkLayerC() {
     DEBUG << "Datagrams recieved " << datagramsRecieved_v << ENDL;
     DEBUG << "Datagrams sendt " << datagramsSent_v << ENDL;
 
+}
+
+bool networkLayerC::dataAvalable(unsigned int timeToSleep) {
+    fd_set rfds;
+    int retval;
+    struct timeval tv;
+
+
+    FD_ZERO(&rfds);
+    FD_SET(socketFd, &rfds);
+
+    tv.tv_sec = timeToSleep;
+    tv.tv_usec = 0;
+
+   retval = select(1, &rfds, NULL, NULL, &tv);
+   if (retval == -1) {
+        FATAL << "select failed, returning -1" << ENDL;
+        throw (std::system_error(std::make_error_code(static_cast<std::errc>(errno)), strerror(errno)));
+   }
+
+   return retval;
 }
 

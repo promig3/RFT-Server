@@ -168,7 +168,13 @@ int main(int argc, char* argv[]) {
             TRACE << "Main is calling udt_send(sndpkt)" << ENDL;
             network->udt_send(sndpkt,!notFinished);
             TRACE << "Sent ACK back: " << toString(sndpkt) << ENDL;
+
+            // Sleeps for 1 second, just in case the real network loses the last ack.
+            if (!notFinished) 
+                notFinished = network->dataAvalable(1);
+            
         }
+
 
         delete datagram;
         delete network;
