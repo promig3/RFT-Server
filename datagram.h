@@ -9,8 +9,8 @@
 
 #define MAX_PAYLOAD_LENGTH 255
 struct datagramS {
-    uint16_t seqNum;
-    uint16_t ackNum;
+    uint32_t seqNum;
+    uint32_t ackNum;
     uint16_t checksum;
     uint8_t payloadLength = MAX_PAYLOAD_LENGTH;
     uint8_t data[MAX_PAYLOAD_LENGTH];

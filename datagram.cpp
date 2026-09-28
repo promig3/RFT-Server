@@ -19,8 +19,10 @@ std::string toString(const datagramS *datagram) {
 
 uint16_t computeChecksum(const struct datagramS *datagram) {
     uint16_t sum = 0;
-    sum += datagram->seqNum;
-    sum += datagram->ackNum;
+    sum += datagram->seqNum & 0xFFFF;
+    sum += datagram->seqNum >> 16;
+    sum += datagram->ackNum & 0xFFFF;
+    sum += datagram->ackNum >> 16;
     sum += datagram->payloadLength;
     for (int i=0; i<datagram->payloadLength; i++)
         sum += datagram->data[i];

@@ -48,7 +48,7 @@ networkLayerC::networkLayerC(uint16_t portNum, float lossRate, float corruptionR
             throw(std::system_error(std::make_error_code(static_cast<std::errc>(errno)), strerror(errno)));
         }
     }
-    std::cout << "Using port#" << portNum << std::endl;
+    std::cout << "Using port# " << portNum << std::endl;
 
     // Set up random number generator
     // The std::random_device gets a random number from the OS.

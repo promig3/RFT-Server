@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
     //
     // Create the ACK packet we will send back each time. Only the ACK number will change.
     //
-    uint16_t expectedSeqNum = 1;
+    uint32_t expectedSeqNum = 1;
     auto *sndpkt = new datagramS;
     sndpkt->seqNum = 0;
     sndpkt->ackNum = 0;
