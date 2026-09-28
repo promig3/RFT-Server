@@ -14,7 +14,7 @@
 
 class networkLayerC {
 private:
-    bool server;
+    bool endOfFileRecieved_v;
     int socketFd;
     int inboundLossCount_v;
     int inboundCorruptionCount_v;
@@ -26,15 +26,15 @@ private:
     std::mt19937 gen;
     std::bernoulli_distribution corruption;
     std::bernoulli_distribution loss;
-    std::uniform_real_distribution<double> delay;
     struct sockaddr_in serverAddr{};
     struct sockaddr_in clientAddr{};
 public:
    explicit networkLayerC(uint16_t portNum, float lossRate, float corruptionRate,unsigned int delay);
    ~networkLayerC();
-   void udt_send( datagramS *data, bool lastPacket);
+   void udt_send( datagramS *data);
    void udt_receive(datagramS *data) ;
    bool dataAvalable(unsigned int timeToSleep);
+   void endOfFileRecieved();
 
 };
 

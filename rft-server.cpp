@@ -35,9 +35,9 @@ std::ofstream open_output_file(const std::string &filename) {
     return outputFile;
 }
 
-void deliver_data(std::ofstream &outputFile, char *data, int length) {
+void deliver_data(std::ofstream &outputFile, uint8_t *data, int length) {
     DEBUG << "Writing " << length << " bytes to output file." << ENDL;
-    outputFile.write(data, length);
+    outputFile.write(reinterpret_cast<const char *>(data), length);
     if (!outputFile) {
         throw std::runtime_error("Error writing to output file.");
     }
@@ -56,43 +56,72 @@ int main(int argc, char* argv[]) {
 
     int opt;
     try {
+        int signedTemp(0);
         while ((opt = getopt(argc, argv, "f:p:d:l:c:t:")) != -1) {
             switch (opt) {
                 case 't':
-                    delay = std::stoi(optarg);
+                    if ((signedTemp = std::stoi(optarg)) < 0) {
+                        std::cerr  << "Delay must be positive"  << std::endl;
+                        printInstructions();
+                        exit(EXIT_FAILURE);
+                    }
+                    delay = signedTemp;
                     break;
                 case 'l':
                     lossRate = std::stof(optarg);
+                    if (!((lossRate >= 0.0) and (lossRate <= 1.0))) {
+                       std::cerr  << "Loss rate must be between 0.0 and 1.0"  << std::endl;
+                        printInstructions();
+                        exit(EXIT_FAILURE);
+                    }
                     break;
                 case 'c':
                     corruptionRate = std::stof(optarg);
+                    if (!((corruptionRate >= 0.0) and (corruptionRate <= 1.0))) {
+                        std::cerr  << "Corruption rate must be between 0.0 and 1.0"  << std::endl;
+                        printInstructions();
+                        exit(EXIT_FAILURE);
+                    }
                     break;
                 case 'p':
-                    portNum = std::stoi(optarg);
+                    signedTemp = std::stoi(optarg);
+                    if ((signedTemp < 12000) or (signedTemp > 13000)) {
+                        std::cerr  << "To deal with isengard's firewall, port numbers must be between 12,000 and 13,000."  << std::endl;
+                        printInstructions();
+                         exit(EXIT_FAILURE);
+                    }
+                    portNum = signedTemp;
                     break;
                 case 'd':
                     LOG_LEVEL = std::stoi(optarg);
+                    if ((LOG_LEVEL < 0) or (LOG_LEVEL > 6)) {
+                        std::cerr  << "Debug level must be between 0 and 6"  << std::endl;
+                        printInstructions();
+                        exit(EXIT_FAILURE);
+                    }
                     break;
                 case 'f':
                     outputFileName = optarg;
                     break;
                 case '?':
                 default:
-		  printInstructions();
-                    break;
+		            printInstructions();
+                    exit(EXIT_FAILURE);
             }
         }
     } catch (std::exception &e) {
-        FATAL << "Invalid command line arguments: " << e.what() << ENDL;
-	printInstructions();
-        return(1);
+        std::cerr << "Invalid command line arguments: " << e.what() << std::endl;
+	    printInstructions();
+        exit(EXIT_FAILURE);
     }
 
     if (outputFileName == "") {
-       FATAL << "Invalid command line arguments: output filename is required."  << ENDL;
-       printInstructions();
-        return(1);
+        std::cerr  << "Invalid command line arguments: output filename is required."  << std::endl;
+        printInstructions();
+        exit(EXIT_FAILURE);
     }
+
+
    
     INFO << "Command line arguments parsed." << ENDL;
     INFO << "\tOutput file name: " << outputFileName << ENDL;
@@ -152,6 +181,7 @@ int main(int argc, char* argv[]) {
                         INFO << "Payload length is zero, indicating we have received all the data packet." << ENDL;
                         outputFile.close();
                         notFinished = false;
+                        network->endOfFileRecieved();
                     } else {
                         DEBUG << "Main is calling deliver_data(rcvpkt->data)" << ENDL;
                         deliver_data(outputFile, datagram->data, datagram->payloadLength);
@@ -166,7 +196,7 @@ int main(int argc, char* argv[]) {
 
             TRACE << "Main is calling udt_send(sndpkt)" << ENDL;
             sndpkt->checksum = computeChecksum(sndpkt);
-            network->udt_send(sndpkt,!notFinished);
+            network->udt_send(sndpkt);
             TRACE << "Sent ACK back: " << toString(sndpkt) << ENDL;
 
         }
@@ -178,7 +208,7 @@ int main(int argc, char* argv[]) {
         while (network->dataAvalable(1)) {
             network->udt_receive(datagram);
             if (validateChecksum(datagram) && (datagram->payloadLength == 0))
-                network->udt_send(sndpkt,true);
+                network->udt_send(sndpkt);
         }
 
 

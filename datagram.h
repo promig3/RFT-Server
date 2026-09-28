@@ -13,7 +13,7 @@ struct datagramS {
     uint16_t ackNum;
     uint16_t checksum;
     uint8_t payloadLength = MAX_PAYLOAD_LENGTH;
-    char data[MAX_PAYLOAD_LENGTH];
+    uint8_t data[MAX_PAYLOAD_LENGTH];
 };
 
 std::string toString(const struct datagramS *datagram);

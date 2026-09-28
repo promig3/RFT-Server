@@ -17,9 +17,9 @@
 // hostname: the name of the server
 // portNum: the port number to connect to
 networkLayerC::networkLayerC(uint16_t portNum, float lossRate, float corruptionRate, unsigned int delay) : 
-    inboundLossCount_v(0), inboundCorruptionCount_v(0), outboundLossCount_v(0),
+    inboundLossCount_v(0), inboundCorruptionCount_v(0), outboundLossCount_v(0), 
     outboundCorruptionCount_v(0), datagramsSent_v(0), datagramsRecieved_v(0),
-    delay_v(delay)
+    delay_v(delay), endOfFileRecieved_v(false)
 {
     TRACE << "Creating a networkLayerC object with flavor server." << ENDL;
     // Create a UDP socketFd
@@ -39,7 +39,8 @@ networkLayerC::networkLayerC(uint16_t portNum, float lossRate, float corruptionR
     while (bind(socketFd, (struct sockaddr *) &serverAddr, sizeof(serverAddr)) == -1) {
         if (errno == EADDRINUSE) {
             WARNING << "Port #" << portNum << " is in use. Trying next port." << ENDL;
-            portNum++;
+            if (++portNum > 13000)
+                portNum = 12000;
             serverAddr.sin_port = htons(portNum);
         } else {
             FATAL << "Error binding socketFd, throwing error #" << errno << ENDL;
@@ -47,7 +48,7 @@ networkLayerC::networkLayerC(uint16_t portNum, float lossRate, float corruptionR
             throw(std::system_error(std::make_error_code(static_cast<std::errc>(errno)), strerror(errno)));
         }
     }
-    TRACE << "Successfully bound to port#" << portNum << ENDL;
+    std::cout << "Using port#" << portNum << std::endl;
 
     // Set up random number generator
     // The std::random_device gets a random number from the OS.
@@ -59,29 +60,21 @@ networkLayerC::networkLayerC(uint16_t portNum, float lossRate, float corruptionR
 
     loss.param(std::bernoulli_distribution::param_type(lossRate));
     corruption.param(std::bernoulli_distribution::param_type(corruptionRate));
-    //delay.param(std::uniform_real_distribution<double>::param_type(0.0,0.25));
-
-    server = true;
 }
 
 
 
 
-void networkLayerC::udt_send(datagramS *data, bool lastPacket)  {
+void networkLayerC::udt_send(datagramS *data)  {
 
-    struct sockaddr_in destinationAddr{};
-    if (server) {
-        if (clientAddr.sin_family == 0) {
-            FATAL << "Server can't send before it has received a message (client addr not set)." << ENDL;
-            throw(std::runtime_error("Server can't send before it has received a message (client add not set)."));
-        }
-        destinationAddr = clientAddr;
-    } else {
-        destinationAddr = serverAddr;
+
+    if (clientAddr.sin_family == 0) {
+        FATAL << "Server can't send before it has received a message (client addr not set)." << ENDL;
+        throw(std::runtime_error("Server can't send before it has received a message (client add not set)."));
     }
+    
 
-    if (!lastPacket) {
-
+    if (!endOfFileRecieved_v) {
         if (loss(gen)) {
 	        outboundLossCount_v++;
             WARNING << "Losing the outgoing datagram." << ENDL;
@@ -103,15 +96,16 @@ void networkLayerC::udt_send(datagramS *data, bool lastPacket)  {
         std::this_thread::sleep_for(std::chrono::milliseconds(delay_v));
     }
 
-    DEBUG << "Sending datagram to " << inet_ntoa(destinationAddr.sin_addr)
-	      << ":" << ntohs(destinationAddr.sin_port) << ENDL;
+    DEBUG << "Sending datagram to " << inet_ntoa(clientAddr.sin_addr)
+	      << ":" << ntohs(clientAddr.sin_port) << ENDL;
     TRACE << "Sending: " << toString(data) << ENDL;
     
     ssize_t bytesSent = sendto(socketFd, data, sizeof(datagramS), 0,
-                                 (struct sockaddr*)&destinationAddr, sizeof(destinationAddr));
+                                 (struct sockaddr*)&clientAddr, sizeof(clientAddr));
     if (bytesSent == -1) {
         WARNING << "Error sending datagram." << ENDL;
         close(socketFd);
+        socketFd = -1;
         throw(std::runtime_error("sendto() failed. Error #" + std::to_string(errno) + ": " + strerror(errno)));
     }
     datagramsSent_v++;
@@ -126,28 +120,31 @@ void networkLayerC::udt_receive(datagramS *data)   {
         memset(&clientAddr, 0, sizeof(struct sockaddr_in));
         socklen_t addrLen = sizeof(clientAddr);
         DEBUG << "Calling recvfrom on socket with file descriptor #" << socketFd << ENDL;
+        bzero(data,sizeof(datagramS));
         bytesRead = recvfrom(socketFd, (void *) data, sizeof(datagramS), 0,
                                      reinterpret_cast<struct sockaddr *>(&clientAddr), &addrLen);
 
         if (bytesRead == -1) {
             FATAL << "Error when calling recvfrom() throwing error #" << errno << ENDL;
             close(socketFd);
+            socketFd = -1;
             throw (std::system_error(std::make_error_code(static_cast<std::errc>(errno)), strerror(errno)));
         }
 	    datagramsRecieved_v++;
+        notReceived = false;    
+        
+        if (!endOfFileRecieved_v) {
 
-        if (loss(gen)) {
-            WARNING << "Losing the incoming datagram." << ENDL;
-	        inboundLossCount_v++;
-        } else {
-            notReceived = false;
+            if (loss(gen)) {
+                WARNING << "Losing the incoming datagram." << ENDL;
+                inboundLossCount_v++;
+                notReceived = true;
+            } else if (corruption(gen)) {
+                inboundCorruptionCount_v++;
+                WARNING << "Corrupting the incoming datagram." << ENDL;
+                data->checksum++;
+            }
         }
-    }
-
-    if (corruption(gen)) {
-	    inboundCorruptionCount_v++;
-        WARNING << "Corrupting the incoming datagram." << ENDL;
-        data->checksum++;
     }
 
     DEBUG << "Successfully received " << bytesRead << " bytes." << ENDL;
@@ -155,7 +152,7 @@ void networkLayerC::udt_receive(datagramS *data)   {
 }
 
 networkLayerC::~networkLayerC() {
-    if (socketFd != 0) {
+    if (socketFd != -1) {
         close(socketFd);
     }
     DEBUG << "Input loss count " << inboundLossCount_v << ENDL;
@@ -186,5 +183,9 @@ bool networkLayerC::dataAvalable(unsigned int timeToSleep) {
    }
 
    return retval;
+}
+
+void networkLayerC::endOfFileRecieved() {
+    endOfFileRecieved_v = true;
 }
 

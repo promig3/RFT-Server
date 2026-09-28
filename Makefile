@@ -5,8 +5,6 @@
 #  Created by Phillip Romig on 4/3/12.
 #  Copyright 2012 Colorado School of Mines. All rights reserved.
 #
-USERNAME = change-me
-
 CXX = g++
 LD = g++
 CXXFLAGS = -std=c++17 -g
@@ -35,12 +33,3 @@ ${TARGET}: ${OBJ_FILES}
 #
 clean:
 	rm -f core ${TARGET} ${OBJ_FILES}
-
-#
-# This might work to create the submission tarball in the formal I asked for.
-#
-submit:
-	rm -f core rtf-server ${OBJ_FILES}
-	mkdir ${USERNAME} 
-	cp Makefile README.txt *.h *.cpp ${USERNAME} 
-	tar zcf ${USERNAME}.tgz ${USERNAME} 
