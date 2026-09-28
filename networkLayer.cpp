@@ -91,8 +91,7 @@ void networkLayerC::udt_send(datagramS *data, bool lastPacket)  {
         if (corruption(gen)) {
             WARNING << "Corrupting the outgoing datagram." << ENDL;
 	        outboundCorruptionCount_v++;
-            data->payloadLength = 1;
-            data->data[0] = 'X';
+            data->checksum++;
         }
     }
 
@@ -148,7 +147,7 @@ void networkLayerC::udt_receive(datagramS *data)   {
     if (corruption(gen)) {
 	    inboundCorruptionCount_v++;
         WARNING << "Corrupting the incoming datagram." << ENDL;
-        data->data[0] = 'X';
+        data->checksum++;
     }
 
     DEBUG << "Successfully received " << bytesRead << " bytes." << ENDL;

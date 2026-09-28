@@ -158,7 +158,6 @@ int main(int argc, char* argv[]) {
                     }
 
                     sndpkt->ackNum = expectedSeqNum++;
-                    sndpkt->checksum = computeChecksum(sndpkt);
                 } else {
                     WARNING << "SeqNum does not match expectedSeqNum (expected " << expectedSeqNum << ", got " << datagram->seqNum << ")" << ENDL;
                 }
@@ -166,6 +165,7 @@ int main(int argc, char* argv[]) {
 
 
             TRACE << "Main is calling udt_send(sndpkt)" << ENDL;
+            sndpkt->checksum = computeChecksum(sndpkt);
             network->udt_send(sndpkt,!notFinished);
             TRACE << "Sent ACK back: " << toString(sndpkt) << ENDL;
 
@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
 
         // Wait to see if we get a duplicate last datagram, which would indicate that the last
         // ACK was lost by the network. The file is closed, so we don't send the data to the application, 
-        // rather we just keep sending the lask ACK until nothing is recieved for 1 second.
+        // rather we just keep sending the last ACK until nothing is recieved for 1 second.
         // Code written with the help of Claude AI
         while (network->dataAvalable(1)) {
             network->udt_receive(datagram);
