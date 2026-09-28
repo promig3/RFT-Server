@@ -17,9 +17,9 @@
 // hostname: the name of the server
 // portNum: the port number to connect to
 networkLayerC::networkLayerC(uint16_t portNum, float lossRate, float corruptionRate, unsigned int delay) : 
-    inboundLossCount_v(0), inboundCorruptionCount_v(0), outboundLossCount_v(0), 
-    outboundCorruptionCount_v(0), datagramsSent_v(0), datagramsRecieved_v(0),
-    delay_v(delay), endOfFileRecieved_v(false)
+    endOfFileRecieved_v(false), inboundLossCount_v(0), inboundCorruptionCount_v(0),
+    outboundLossCount_v(0), outboundCorruptionCount_v(0), datagramsSent_v(0),
+    datagramsRecieved_v(0), delay_v(delay)
 {
     TRACE << "Creating a networkLayerC object with flavor server." << ENDL;
     // Create a UDP socketFd
@@ -159,8 +159,8 @@ networkLayerC::~networkLayerC() {
     DEBUG << "Input corruption count " << inboundCorruptionCount_v << ENDL;
     DEBUG << "Output loss count " << outboundLossCount_v << ENDL;
     DEBUG << "Output corruption count " << outboundCorruptionCount_v << ENDL;
-    DEBUG << "Datagrams recieved " << datagramsRecieved_v << ENDL;
-    DEBUG << "Datagrams sendt " << datagramsSent_v << ENDL;
+    DEBUG << "Datagrams received " << datagramsRecieved_v << ENDL;
+    DEBUG << "Datagrams sent " << datagramsSent_v << ENDL;
 
 }
 
